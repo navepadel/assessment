@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel Player Skill Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .overall-score {
+            font-size: 18px;
+            color: #374151;
+        }
+        
+        .overall-score .score {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        
+        .chart-container {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+        
+        .radar-section {
+            flex: 2;
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 8px;
+        }
+        
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .legend, .adjusters, .summary {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .legend h3, .adjusters h3, .summary h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        
+        .skill-adjuster {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .skill-label {
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .skill-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .skill-slider {
+            width: 80px;
+        }
+        
+        .skill-value {
+            font-size: 14px;
+            font-weight: bold;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .summary-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .summary-label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .strong-skills {
+            color: #10b981;
+        }
+        
+        .weak-skills {
+            color: #f59e0b;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Padel Player Skill Assessment</h1>
+            <h2 id="playerInfo">Loading...</h2>
+            <div class="overall-score">
+                Overall Score: <span class="score" id="overallScore">-</span>/10
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="radar-section">
+                <svg width="400" height="400" id="radarChart"></svg>
+            </div>
+            
+            <div class="controls-section">
+                <div class="legend">
+                    <h3>Skill Categories</h3>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #3B82F6;"></div>
+                        <span>Technical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #10B981;"></div>
+                        <span>Tactical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #F59E0B;"></div>
+                        <span>Physical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #8B5CF6;"></div>
+                        <span>Mental</span>
+                    </div>
+                </div>
+                
+                <div class="adjusters">
+                    <h3>Adjust Skills (1-10)</h3>
+                    <div id="skillAdjusters"></div>
+                </div>
+                
+                <div class="summary">
+                    <h3>Performance Summary</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Strongest Skills:</span>
+                        <span class="strong-skills" id="strongSkills">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Areas to Improve:</span>
+                        <span class="weak-skills" id="weakSkills">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const skillCategories = {
+            "Forehand": "Technical",
+            "Backhand": "Technical",
+            "Serve": "Technical", 
+            "Volley": "Technical",
+            "Wall Play": "Technical",
+            "Positioning": "Tactical",
+            "Tactics": "Tactical",
+            "Fitness": "Physical",
+            "Mental Game": "Mental",
+            "Communication": "Mental"
+        };
+
+        const categoryColors = {
+            "Technical": "#3B82F6",
+            "Tactical": "#10B981",
+            "Physical": "#F59E0B", 
+            "Mental": "#8B5CF6"
+        };
+
+        // Default player data
+        let playerData = {
+            name: "Sample Player",
+            level: "Intermediate",
+            skills: {
+                "Forehand": 7,
+                "Backhand": 6,
+                "Serve": 8,
+                "Volley": 7,
+                "Wall Play": 5,
+                "Positioning": 6,
+                "Tactics": 7,
+                "Fitness": 8,
+                "Mental Game": 6,
+                "Communication": 8
+            }
+        };
+
+        // Parse URL parameters
+        function parseUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            
+            // Player info
+            if (params.get('name')) playerData.name = decodeURIComponent(params.get('name'));
+            if (params.get('level')) playerData.level = decodeURIComponent(params.get('level'));
+            
+            // Skills
+            Object.keys(playerData.skills).forEach(skill => {
+                const paramKey = skill.toLowerCase().replace(' ', '_');
+                const value = params.get(paramKey);
+                if (value && !isNaN(value)) {
+                    playerData.skills[skill] = Math.max(1, Math.min(10, parseInt(value)));
+                }
+            });
+        }
+
+        // Chart drawing functions
+        function drawRadarChart() {
+            const svg = document.getElementById('radarChart');
+            const skills = Object.keys(playerData.skills);
+            const maxScore = 10;
+            const centerX = 200;
+            const centerY = 200;
+            const maxRadius = 150;
+            
+            // Clear existing content
+            svg.innerHTML = '';
+            
+            // Draw grid circles
+            [2, 4, 6, 8, 10].forEach(level => {
+                const radius = (level / maxScore) * maxRadius;
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', centerX);
+                circle.setAttribute('cy', centerY);
+                circle.setAttribute('r', radius);
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', '#E5E7EB');
+                circle.setAttribute('stroke-width', '1');
+                svg.appendChild(circle);
+                
+                // Add score labels
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', centerX + 5);
+                text.setAttribute('y', centerY - radius + 5);
+                text.setAttribute('font-size', '10');
+                text.setAttribute('fill', '#6B7280');
+                text.textContent = level;
+                svg.appendChild(text);
+            });
+            
+            // Draw grid lines
+            skills.forEach((_, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', centerX);
+                line.setAttribute('y1', centerY);
+                line.setAttribute('x2', centerX + Math.cos(angle) * maxRadius);
+                line.setAttribute('y2', centerY + Math.sin(angle) * maxRadius);
+                line.setAttribute('stroke', '#E5E7EB');
+                line.setAttribute('stroke-width', '1');
+                svg.appendChild(line);
+            });
+            
+            // Calculate polygon points
+            const points = skills.map((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.skills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Draw polygon
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', points);
+            polygon.setAttribute('fill', 'rgba(59, 130, 246, 0.3)');
+            polygon.setAttribute('stroke', '#3B82F6');
+            polygon.setAttribute('stroke-width', '2');
+            svg.appendChild(polygon);
+            
+            // Draw skill points and labels
+            skills.forEach((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.skills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                
+                // Skill point
+                const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                point.setAttribute('cx', x);
+                point.setAttribute('cy', y);
+                point.setAttribute('r', '4');
+                point.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                point.setAttribute('stroke', 'white');
+                point.setAttribute('stroke-width', '2');
+                svg.appendChild(point);
+                
+                // Skill label
+                const labelRadius = maxRadius + 20;
+                const labelX = centerX + Math.cos(angle) * labelRadius;
+                const labelY = centerY + Math.sin(angle) * labelRadius;
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', labelX);
+                label.setAttribute('y', labelY);
+                label.setAttribute('font-size', '12');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('dominant-baseline', 'middle');
+                label.textContent = skill;
+                svg.appendChild(label);
+            });
+        }
+        
+        function updateUI() {
+            // Update player info
+            document.getElementById('playerInfo').textContent = `${playerData.name} - ${playerData.level} Level`;
+            
+            // Calculate and update overall score
+            const scores = Object.values(playerData.skills);
+            const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+            document.getElementById('overallScore').textContent = average.toFixed(1);
+            
+            // Update skill adjusters
+            const adjustersContainer = document.getElementById('skillAdjusters');
+            adjustersContainer.innerHTML = '';
+            
+            Object.keys(playerData.skills).forEach(skill => {
+                const adjuster = document.createElement('div');
+                adjuster.className = 'skill-adjuster';
+                adjuster.innerHTML = `
+                    <span class="skill-label">${skill}</span>
+                    <div class="skill-controls">
+                        <input type="range" min="1" max="10" value="${playerData.skills[skill]}" 
+                               class="skill-slider" data-skill="${skill}">
+                        <span class="skill-value">${playerData.skills[skill]}</span>
+                    </div>
+                `;
+                adjustersContainer.appendChild(adjuster);
+            });
+            
+            // Add event listeners to sliders
+            document.querySelectorAll('.skill-slider').forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const skill = e.target.getAttribute('data-skill');
+                    const value = parseInt(e.target.value);
+                    playerData.skills[skill] = value;
+                    e.target.nextElementSibling.textContent = value;
+                    drawRadarChart();
+                    updateSummary();
+                    updateOverallScore();
+                });
+            });
+            
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const skillEntries = Object.entries(playerData.skills);
+            
+            // Top 3 skills
+            const topSkills = skillEntries
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 3)
+                .map(([skill, score]) => `${skill} (${score}/10)`)
+                .join(', ');
+                
+            // Bottom 3 skills
+            const weakSkills = skillEntries
+                .sort(([,a], [,b]) => a - b)
+                .slice(0, 3)
+                .map(([skill, score]) => `${skill} (${score}/10)`)
+                .join(', ');
+                
+            document.getElementById('strongSkills').textContent = topSkills;
+            document.getElementById('weakSkills').textContent = weakSkills;
+        }
+        
+        function updateOverallScore() {
+            const scores = Object.values(playerData.skills);
+            const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+            document.getElementById('overallScore').textContent = average.toFixed(1);
+        }
+        
+        // Initialize
+        parseUrlParams();
+        updateUI();
+        drawRadarChart();
+    </script>
+</body>
+</html>
