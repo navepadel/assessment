@@ -1,1 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel Player Progress Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .logo-container {
+            margin-bottom: 16px;
+        }
+        
+        .logo {
+            max-height: 60px;
+            max-width: 200px;
+            height: auto;
+            width: auto;
+        }
+        
+        .header h1 {
+            font-size: clamp(24px, 5vw, 32px);
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        
+        .header h2 {
+            font-size: clamp(16px, 4vw, 20px);
+            color: #6b7280;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        
+        /* Logo responsiveness */
+        @media (max-width: 480px) {
+            .logo {
+                max-height: 40px;
+                max-width: 150px;
+            }
+        }
+        
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .metric-card.improvement { border-color: #10b981; }
+        .metric-card.decline { border-color: #ef4444; }
+        .metric-card.neutral { border-color: #6b7280; }
+        
+        .metric-label {
+            font-size: clamp(12px, 2.5vw, 14px);
+            color: #6b7280;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: bold;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        
+        .metric-change {
+            font-size: clamp(11px, 2.5vw, 14px);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .improvement-value { color: #10b981; }
+        .decline-value { color: #ef4444; }
+        .neutral-value { color: #6b7280; }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            overflow-x: auto;
+        }
+        
+        .chart-header {
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+        
+        .date-comparison {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 16px;
+            font-size: clamp(14px, 3vw, 16px);
+            flex-wrap: wrap;
+        }
+        
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .date-color {
+            width: 16px;
+            height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .current-color { background: #3b82f6; }
+        .previous-color { 
+            background: #9ca3af; 
+            border: 2px dashed #6b7280;
+            height: 2px;
+            margin: 0.5px 0;
+        }
+        
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            overflow: visible;
+        }
+        
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: clamp(12px, 2.5vw, 14px);
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .side-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .panel-section {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .panel-title {
+            font-size: clamp(16px, 3.5vw, 18px);
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+        
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 8px;
+        }
+        
+        .skill-item:last-child {
+            border-bottom: none;
+        }
+        
+        .skill-name {
+            font-weight: 500;
+            color: #374151;
+            flex: 1;
+            font-size: clamp(13px, 2.8vw, 15px);
+            min-width: 0;
+        }
+        
+        .skill-scores {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .skill-score {
+            font-weight: bold;
+            font-size: clamp(14px, 3vw, 16px);
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .previous-score { color: #9ca3af; }
+        .current-score { color: #3b82f6; }
+        
+        .skill-change {
+            font-size: clamp(11px, 2.5vw, 14px);
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+            min-width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .change-positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .change-negative {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .change-neutral {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .insights-section {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .insights-title {
+            font-size: clamp(18px, 4vw, 20px);
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+        
+        .insight-item {
+            background: white;
+            padding: 14px;
+            border-radius: 6px;
+            border-left: 4px solid #e5e7eb;
+        }
+        
+        .insight-item.positive { border-left-color: #10b981; }
+        .insight-item.negative { border-left-color: #ef4444; }
+        .insight-item.neutral { border-left-color: #3b82f6; }
+        
+        .insight-label {
+            font-size: clamp(13px, 2.8vw, 14px);
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .insight-value {
+            font-size: clamp(12px, 2.5vw, 13px);
+            color: #6b7280;
+            line-height: 1.4;
+        }
+        
+        /* Tablet breakpoint */
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+                gap: 28px;
+            }
+            
+            .side-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-row {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+                margin-bottom: 28px;
+            }
+            
+            .chart-section {
+                padding: 28px;
+            }
+            
+            .panel-section {
+                padding: 20px;
+            }
+        }
+        
+        /* Desktop breakpoint */
+        @media (min-width: 1024px) {
+            .container {
+                padding: 28px;
+            }
+            
+            .header {
+                margin-bottom: 32px;
+                padding-bottom: 24px;
+            }
+            
+            .main-content {
+                gap: 32px;
+                margin-bottom: 32px;
+            }
+            
+            .metrics-row {
+                gap: 24px;
+                margin-bottom: 32px;
+            }
+            
+            .chart-section {
+                padding: 32px;
+            }
+            
+            .insights-section {
+                padding: 20px;
+            }
+            
+            .insights-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 16px;
+            }
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #2563eb;
+        }
+        
+        @media print {
+            .print-button { display: none; }
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 20px;
+                max-width: none;
+            }
+            
+            .header {
+                border-bottom: 2px solid #000;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+            
+            .header h1 {
+                color: #000;
+                font-size: 24px;
+            }
+            
+            .header h2 {
+                color: #333;
+                font-size: 18px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                page-break-inside: avoid;
+            }
+            
+            .chart-section {
+                background: white;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+            
+            .side-panel {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            .panel-section {
+                background: white;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+            
+            .insights-section {
+                background: white;
+                border: 1px solid #ddd;
+                page-break-before: auto;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .insight-item {
+                border: 1px solid #ddd;
+                background: white;
+            }
+            
+            .metric-card {
+                background: white;
+                border: 1px solid #ddd;
+            }
+            
+            /* Ensure colors work in PDF */
+            .improvement-value { color: #059669 !important; }
+            .decline-value { color: #dc2626 !important; }
+            .change-positive { background: #f0f9ff; color: #059669; }
+            .change-negative { background: #fef2f2; color: #dc2626; }
+            
+            /* Hide interactive elements */
+            button, input[type="range"] { display: none; }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 16px;
+                border-radius: 8px;
+            }
+            
+            .metrics-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .metric-card {
+                padding: 12px;
+                min-height: 80px;
+            }
+            
+            .date-comparison {
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .chart-section {
+                padding: 16px;
+            }
+            
+            .skill-scores {
+                gap: 6px;
+            }
+            
+            .skill-name {
+                font-size: 13px;
+            }
+            
+            .panel-section {
+                padding: 14px;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">📄 Generate PDF</button>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Your Club Logo" class="logo" id="logoImg">
+            </div>
+            <h1>Padel Player Progress Assessment</h1>
+            <h2 id="playerInfo">Loading...</h2>
+        </div>
+        
+        <div class="metrics-row">
+            <div class="metric-card" id="overallCard">
+                <div class="metric-label">Overall Progress</div>
+                <div class="metric-value" id="overallChange">-</div>
+                <div class="metric-change" id="overallChangeText">-</div>
+            </div>
+            <div class="metric-card" id="skillsImprovedCard">
+                <div class="metric-label">Skills Improved</div>
+                <div class="metric-value improvement-value" id="skillsImproved">-</div>
+                <div class="metric-change">out of 10 skills</div>
+            </div>
+            <div class="metric-card" id="avgScoreCard">
+                <div class="metric-label">Current Average</div>
+                <div class="metric-value" id="currentAvgScore">-</div>
+                <div class="metric-change" id="avgScoreChange">-</div>
+            </div>
+            <div class="metric-card" id="timeFrameCard">
+                <div class="metric-label">Time Frame</div>
+                <div class="metric-value neutral-value" id="daysBetween">-</div>
+                <div class="metric-change">days of training</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div class="chart-title">Progress Comparison</div>
+                    <div class="date-comparison">
+                        <div class="date-item">
+                            <div class="date-color previous-color"></div>
+                            <span>Previous: <span id="previousDate">-</span></span>
+                        </div>
+                        <div class="date-item">
+                            <div class="date-color current-color"></div>
+                            <span>Current: <span id="currentDate">-</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <svg id="radarChart"></svg>
+                </div>
+                
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #3B82F6;"></div>
+                        <span>Technical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #10B981;"></div>
+                        <span>Tactical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #F59E0B;"></div>
+                        <span>Physical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #8B5CF6;"></div>
+                        <span>Mental</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel">
+                <div class="panel-section">
+                    <div class="panel-title">Skill Comparison</div>
+                    <div id="skillsComparison"></div>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-title">Category Performance</div>
+                    <div id="categoryPerformance"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="insights-section">
+            <div class="insights-title">Performance Insights</div>
+            <div class="insights-grid" id="insightsGrid"></div>
+        </div>
+    </div>
 
+    <script>
+        const skillCategories = {
+            "Forehand": "Technical",
+            "Backhand": "Technical",
+            "Serve": "Technical", 
+            "Volley": "Technical",
+            "Wall Play": "Technical",
+            "Positioning": "Tactical",
+            "Tactics": "Tactical",
+            "Fitness": "Physical",
+            "Mental Game": "Mental",
+            "Communication": "Mental"
+        };
+
+        const categoryColors = {
+            "Technical": "#3B82F6",
+            "Tactical": "#10B981",
+            "Physical": "#F59E0B", 
+            "Mental": "#8B5CF6"
+        };
+
+        let playerData = {
+            name: "Maria Rodriguez",
+            level: "Intermediate",
+            currentDate: "2025-09-17",
+            previousDate: "2025-06-15",
+            currentSkills: {
+                "Forehand": 8,
+                "Backhand": 7,
+                "Serve": 9,
+                "Volley": 8,
+                "Wall Play": 6,
+                "Positioning": 7,
+                "Tactics": 8,
+                "Fitness": 9,
+                "Mental Game": 7,
+                "Communication": 8
+            },
+            previousSkills: {
+                "Forehand": 6,
+                "Backhand": 5,
+                "Serve": 7,
+                "Volley": 6,
+                "Wall Play": 4,
+                "Positioning": 5,
+                "Tactics": 6,
+                "Fitness": 8,
+                "Mental Game": 5,
+                "Communication": 7
+            }
+        };
+
+        function parseUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (params.get('name')) playerData.name = decodeURIComponent(params.get('name'));
+            if (params.get('level')) playerData.level = decodeURIComponent(params.get('level'));
+            if (params.get('current_date')) playerData.currentDate = params.get('current_date');
+            if (params.get('previous_date')) playerData.previousDate = params.get('previous_date');
+            
+            // Logo URL parameter
+            const logoUrl = params.get('logo');
+            if (logoUrl) {
+                document.getElementById('logoImg').src = decodeURIComponent(logoUrl);
+            }
+            
+            Object.keys(playerData.currentSkills).forEach(skill => {
+                const currentKey = 'current_' + skill.toLowerCase().replace(' ', '_');
+                const previousKey = 'previous_' + skill.toLowerCase().replace(' ', '_');
+                
+                if (params.get(currentKey)) {
+                    playerData.currentSkills[skill] = parseInt(params.get(currentKey));
+                }
+                if (params.get(previousKey)) {
+                    playerData.previousSkills[skill] = parseInt(params.get(previousKey));
+                }
+            });
+        }
+
+        function drawRadarChart() {
+            const svg = document.getElementById('radarChart');
+            const skills = Object.keys(playerData.currentSkills);
+            const maxScore = 10;
+            
+            // Responsive sizing
+            const containerWidth = svg.parentElement.clientWidth;
+            const isMobile = window.innerWidth < 768;
+            const isSmallMobile = window.innerWidth < 480;
+            
+            let chartSize, centerX, centerY, maxRadius, fontSize, labelOffset;
+            
+            if (isSmallMobile) {
+                chartSize = Math.min(containerWidth - 40, 320);
+                centerX = chartSize / 2;
+                centerY = chartSize / 2;
+                maxRadius = chartSize * 0.35;
+                fontSize = 10;
+                labelOffset = 18;
+            } else if (isMobile) {
+                chartSize = Math.min(containerWidth - 40, 400);
+                centerX = chartSize / 2;
+                centerY = chartSize / 2;
+                maxRadius = chartSize * 0.38;
+                fontSize = 11;
+                labelOffset = 20;
+            } else {
+                chartSize = 500;
+                centerX = 250;
+                centerY = 250;
+                maxRadius = 180;
+                fontSize = 14;
+                labelOffset = 25;
+            }
+            
+            // Update SVG dimensions
+            svg.setAttribute('width', chartSize);
+            svg.setAttribute('height', chartSize);
+            svg.setAttribute('viewBox', `0 0 ${chartSize} ${chartSize}`);
+            
+            // Clear existing content
+            svg.innerHTML = '';
+            
+            // Draw grid circles
+            [2, 4, 6, 8, 10].forEach(level => {
+                const radius = (level / maxScore) * maxRadius;
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', centerX);
+                circle.setAttribute('cy', centerY);
+                circle.setAttribute('r', radius);
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', '#E5E7EB');
+                circle.setAttribute('stroke-width', '1');
+                svg.appendChild(circle);
+                
+                // Add score labels
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', centerX + 5);
+                text.setAttribute('y', centerY - radius + 5);
+                text.setAttribute('font-size', Math.max(9, fontSize - 2));
+                text.setAttribute('fill', '#6B7280');
+                text.textContent = level;
+                svg.appendChild(text);
+            });
+            
+            // Draw grid lines
+            skills.forEach((_, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', centerX);
+                line.setAttribute('y1', centerY);
+                line.setAttribute('x2', centerX + Math.cos(angle) * maxRadius);
+                line.setAttribute('y2', centerY + Math.sin(angle) * maxRadius);
+                line.setAttribute('stroke', '#E5E7EB');
+                line.setAttribute('stroke-width', '1');
+                svg.appendChild(line);
+            });
+            
+            // Calculate polygon points for previous assessment
+            const previousPoints = skills.map((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.previousSkills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Draw previous assessment polygon (behind current)
+            const previousPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            previousPolygon.setAttribute('points', previousPoints);
+            previousPolygon.setAttribute('fill', 'rgba(156, 163, 175, 0.2)');
+            previousPolygon.setAttribute('stroke', '#9CA3AF');
+            previousPolygon.setAttribute('stroke-width', isMobile ? '2' : '3');
+            previousPolygon.setAttribute('stroke-dasharray', isMobile ? '6,4' : '8,5');
+            svg.appendChild(previousPolygon);
+            
+            // Calculate polygon points for current assessment
+            const currentPoints = skills.map((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.currentSkills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Draw current assessment polygon (on top)
+            const currentPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            currentPolygon.setAttribute('points', currentPoints);
+            currentPolygon.setAttribute('fill', 'rgba(59, 130, 246, 0.3)');
+            currentPolygon.setAttribute('stroke', '#3B82F6');
+            currentPolygon.setAttribute('stroke-width', isMobile ? '2' : '3');
+            svg.appendChild(currentPolygon);
+            
+            // Draw skill points and labels
+            skills.forEach((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                
+                // Previous skill point
+                const prevRadius = (playerData.previousSkills[skill] / maxScore) * maxRadius;
+                const prevX = centerX + Math.cos(angle) * prevRadius;
+                const prevY = centerY + Math.sin(angle) * prevRadius;
+                const prevPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                prevPoint.setAttribute('cx', prevX);
+                prevPoint.setAttribute('cy', prevY);
+                prevPoint.setAttribute('r', isMobile ? '3' : '4');
+                prevPoint.setAttribute('fill', '#9CA3AF');
+                prevPoint.setAttribute('stroke', 'white');
+                prevPoint.setAttribute('stroke-width', '2');
+                svg.appendChild(prevPoint);
+                
+                // Current skill point
+                const currRadius = (playerData.currentSkills[skill] / maxScore) * maxRadius;
+                const currX = centerX + Math.cos(angle) * currRadius;
+                const currY = centerY + Math.sin(angle) * currRadius;
+                const currPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                currPoint.setAttribute('cx', currX);
+                currPoint.setAttribute('cy', currY);
+                currPoint.setAttribute('r', isMobile ? '4' : '5');
+                currPoint.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                currPoint.setAttribute('stroke', 'white');
+                currPoint.setAttribute('stroke-width', '2');
+                svg.appendChild(currPoint);
+                
+                // Skill label
+                const labelRadius = maxRadius + labelOffset;
+                const labelX = centerX + Math.cos(angle) * labelRadius;
+                const labelY = centerY + Math.sin(angle) * labelRadius;
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', labelX);
+                label.setAttribute('y', labelY);
+                label.setAttribute('font-size', fontSize);
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('dominant-baseline', 'middle');
+                
+                // Responsive label text
+                if (isSmallMobile && skill.length > 8) {
+                    // Abbreviate long skill names on small screens
+                    const abbreviated = skill === 'Communication' ? 'Comm.' : 
+                                       skill === 'Positioning' ? 'Position' :
+                                       skill === 'Mental Game' ? 'Mental' :
+                                       skill === 'Wall Play' ? 'Wall' : skill;
+                    label.textContent = abbreviated;
+                } else {
+                    label.textContent = skill;
+                }
+                
+                svg.appendChild(label);
+            });
+        }
+        
+        function calculateDaysBetween(date1, date2) {
+            const d1 = new Date(date1);
+            const d2 = new Date(date2);
+            const diffTime = Math.abs(d2 - d1);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+        
+        function updateMetrics() {
+            const currentScores = Object.values(playerData.currentSkills);
+            const previousScores = Object.values(playerData.previousSkills);
+            const currentAvg = currentScores.reduce((a, b) => a + b, 0) / currentScores.length;
+            const previousAvg = previousScores.reduce((a, b) => a + b, 0) / previousScores.length;
+            const overallChange = currentAvg - previousAvg;
+            
+            // Overall progress
+            const overallCard = document.getElementById('overallCard');
+            const overallChangeEl = document.getElementById('overallChange');
+            const overallChangeTextEl = document.getElementById('overallChangeText');
+            
+            if (overallChange > 0) {
+                overallCard.className = 'metric-card improvement';
+                overallChangeEl.className = 'metric-value improvement-value';
+                overallChangeEl.textContent = `+${overallChange.toFixed(1)}`;
+                overallChangeTextEl.textContent = 'points improved';
+            } else if (overallChange < 0) {
+                overallCard.className = 'metric-card decline';
+                overallChangeEl.className = 'metric-value decline-value';
+                overallChangeEl.textContent = overallChange.toFixed(1);
+                overallChangeTextEl.textContent = 'points declined';
+            } else {
+                overallCard.className = 'metric-card neutral';
+                overallChangeEl.className = 'metric-value neutral-value';
+                overallChangeEl.textContent = '0.0';
+                overallChangeTextEl.textContent = 'no change';
+            }
+            
+            // Skills improved
+            const skillsImproved = Object.keys(playerData.currentSkills).filter(skill => 
+                playerData.currentSkills[skill] > playerData.previousSkills[skill]
+            ).length;
+            document.getElementById('skillsImproved').textContent = skillsImproved;
+            
+            // Current average
+            document.getElementById('currentAvgScore').textContent = currentAvg.toFixed(1);
+            document.getElementById('avgScoreChange').textContent = `was ${previousAvg.toFixed(1)}`;
+            
+            // Time frame
+            const days = calculateDaysBetween(playerData.previousDate, playerData.currentDate);
+            document.getElementById('daysBetween').textContent = days;
+        }
+        
+        function updateUI() {
+            document.getElementById('playerInfo').textContent = `${playerData.name} - ${playerData.level} Level`;
+            document.getElementById('currentDate').textContent = new Date(playerData.currentDate).toLocaleDateString();
+            document.getElementById('previousDate').textContent = new Date(playerData.previousDate).toLocaleDateString();
+            
+            updateMetrics();
+            updateSkillsComparison();
+            updateCategoryPerformance();
+            updateInsights();
+        }
+        
+        function updateSkillsComparison() {
+            const container = document.getElementById('skillsComparison');
+            container.innerHTML = '';
+            
+            Object.keys(playerData.currentSkills).forEach(skill => {
+                const current = playerData.currentSkills[skill];
+                const previous = playerData.previousSkills[skill];
+                const change = current - previous;
+                
+                const item = document.createElement('div');
+                item.className = 'skill-item';
+                
+                let changeClass = 'change-neutral';
+                let changeText = '0';
+                if (change > 0) {
+                    changeClass = 'change-positive';
+                    changeText = `+${change}`;
+                } else if (change < 0) {
+                    changeClass = 'change-negative';
+                    changeText = change.toString();
+                }
+                
+                item.innerHTML = `
+                    <span class="skill-name">${skill}</span>
+                    <div class="skill-scores">
+                        <span class="skill-score previous-score">${previous}</span>
+                        <span style="color: #d1d5db;">→</span>
+                        <span class="skill-score current-score">${current}</span>
+                        <span class="skill-change ${changeClass}">${changeText}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        function updateCategoryPerformance() {
+            const container = document.getElementById('categoryPerformance');
+            container.innerHTML = '';
+            
+            const categories = {};
+            Object.keys(skillCategories).forEach(skill => {
+                const category = skillCategories[skill];
+                if (!categories[category]) {
+                    categories[category] = { current: [], previous: [] };
+                }
+                categories[category].current.push(playerData.currentSkills[skill]);
+                categories[category].previous.push(playerData.previousSkills[skill]);
+            });
+            
+            Object.keys(categories).forEach(category => {
+                const currentAvg = categories[category].current.reduce((a, b) => a + b, 0) / categories[category].current.length;
+                const previousAvg = categories[category].previous.reduce((a, b) => a + b, 0) / categories[category].previous.length;
+                const change = currentAvg - previousAvg;
+                
+                const item = document.createElement('div');
+                item.className = 'skill-item';
+                
+                let changeClass = 'change-neutral';
+                let changeText = '0.0';
+                if (change > 0.1) {
+                    changeClass = 'change-positive';
+                    changeText = `+${change.toFixed(1)}`;
+                } else if (change < -0.1) {
+                    changeClass = 'change-negative';
+                    changeText = change.toFixed(1);
+                }
+                
+                item.innerHTML = `
+                    <span class="skill-name" style="color: ${categoryColors[category]}">${category}</span>
+                    <div class="skill-scores">
+                        <span class="skill-score previous-score">${previousAvg.toFixed(1)}</span>
+                        <span style="color: #d1d5db;">→</span>
+                        <span class="skill-score current-score">${currentAvg.toFixed(1)}</span>
+                        <span class="skill-change ${changeClass}">${changeText}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        function updateInsights() {
+            const container = document.getElementById('insightsGrid');
+            container.innerHTML = '';
+            
+            const skillEntries = Object.keys(playerData.currentSkills).map(skill => ({
+                skill,
+                current: playerData.currentSkills[skill],
+                previous: playerData.previousSkills[skill],
+                change: playerData.currentSkills[skill] - playerData.previousSkills[skill]
+            }));
+            
+            // Most improved skill
+            const mostImproved = skillEntries.filter(s => s.change > 0).sort((a, b) => b.change - a.change)[0];
+            if (mostImproved) {
+                const insight = document.createElement('div');
+                insight.className = 'insight-item positive';
+                insight.innerHTML = `
+                    <div class="insight-label">Biggest Improvement</div>
+                    <div class="insight-value">${mostImproved.skill} improved by ${mostImproved.change} points (${mostImproved.previous} → ${mostImproved.current})</div>
+                `;
+                container.appendChild(insight);
+            }
+            
+            // Most declined skill
+            const mostDeclined = skillEntries.filter(s => s.change < 0).sort((a, b) => a.change - b.change)[0];
+            if (mostDeclined) {
+                const insight = document.createElement('div');
+                insight.className = 'insight-item negative';
+                insight.innerHTML = `
+                    <div class="insight-label">Needs Attention</div>
+                    <div class="insight-value">${mostDeclined.skill} declined by ${Math.abs(mostDeclined.change)} points (${mostDeclined.previous} → ${mostDeclined.current})</div>
+                `;
+                container.appendChild(insight);
+            }
+            
+            // Strongest skill
+            const strongest = skillEntries.sort((a, b) => b.current - a.current)[0];
+            const insight1 = document.createElement('div');
+            insight1.className = 'insight-item neutral';
+            insight1.innerHTML = `
+                <div class="insight-label">Current Strength</div>
+                <div class="insight-value">${strongest.skill} is your strongest skill at ${strongest.current}/10</div>
+            `;
+            container.appendChild(insight1);
+            
+            // Consistency
+            const improved = skillEntries.filter(s => s.change > 0).length;
+            const total = skillEntries.length;
+            const consistency = Math.round((improved / total) * 100);
+            
+            const insight2 = document.createElement('div');
+            insight2.className = `insight-item ${consistency >= 60 ? 'positive' : consistency >= 40 ? 'neutral' : 'negative'}`;
+            insight2.innerHTML = `
+                <div class="insight-label">Consistency</div>
+                <div class="insight-value">${consistency}% of skills improved (${improved} out of ${total})</div>
+            `;
+            container.appendChild(insight2);
+            
+            // Progress rate insight
+            const days = calculateDaysBetween(playerData.previousDate, playerData.currentDate);
+            const currentScores = Object.values(playerData.currentSkills);
+            const previousScores = Object.values(playerData.previousSkills);
+            const currentAvg = currentScores.reduce((a, b) => a + b, 0) / currentScores.length;
+            const previousAvg = previousScores.reduce((a, b) => a + b, 0) / previousScores.length;
+            const overallChange = currentAvg - previousAvg;
+            const monthlyRate = (overallChange / days) * 30;
+            
+            const insight3 = document.createElement('div');
+            insight3.className = `insight-item ${monthlyRate > 0.5 ? 'positive' : monthlyRate > 0 ? 'neutral' : 'negative'}`;
+            insight3.innerHTML = `
+                <div class="insight-label">Progress Rate</div>
+                <div class="insight-value">At current pace: ${monthlyRate > 0 ? '+' : ''}${monthlyRate.toFixed(1)} points per month</div>
+            `;
+            container.appendChild(insight3);
+            
+            // Weakest area that improved
+            const improvedWeakAreas = skillEntries.filter(s => s.change > 0 && s.previous <= 6).sort((a, b) => a.previous - b.previous)[0];
+            if (improvedWeakAreas) {
+                const insight4 = document.createElement('div');
+                insight4.className = 'insight-item positive';
+                insight4.innerHTML = `
+                    <div class="insight-label">Weak Area Progress</div>
+                    <div class="insight-value">Great work on ${improvedWeakAreas.skill} - improved from weak area (${improvedWeakAreas.previous}) to ${improvedWeakAreas.current}</div>
+                `;
+                container.appendChild(insight4);
+            }
+        }
+        
+        // Initialize and add resize handling
+        parseUrlParams();
+        updateUI();
+        drawRadarChart();
+        
+        // Add resize listener for responsive chart
+        function handleResize() {
+            drawRadarChart();
+        }
+        
+        // Debounce resize to avoid too many redraws
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 250);
+        });
+    </script>
+</body>
+</html>
