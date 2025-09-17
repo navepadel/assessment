@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel Player Progress Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+        
+        .date-comparison {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+        
+        .date-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .current-color { background: #3b82f6; }
+        .previous-color { background: #9ca3af; border: 2px dashed #6b7280; }
+        
+        .overall-scores {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .current-score { color: #3b82f6; }
+        .previous-score { color: #6b7280; }
+        .improvement { color: #10b981; }
+        .decline { color: #ef4444; }
+        
+        .chart-container {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+        
+        .radar-section {
+            flex: 2;
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 8px;
+        }
+        
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .legend, .adjusters, .summary {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .legend h3, .adjusters h3, .summary h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #1f2937;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        
+        .assessment-legend {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .assessment-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .skill-adjuster {
+            margin-bottom: 16px;
+        }
+        
+        .skill-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .skill-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .skill-change {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .skill-controls {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr 40px;
+            gap: 8px;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .skill-slider {
+            width: 100%;
+        }
+        
+        .summary-item {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .summary-label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-container {
+                flex-direction: column;
+            }
+            
+            .date-comparison, .overall-scores {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Padel Player Progress Assessment</h1>
+            <h2 id="playerInfo">Loading...</h2>
+            
+            <div class="date-comparison">
+                <div class="date-item">
+                    <div class="date-color previous-color"></div>
+                    <span>Previous: <span id="previousDate">-</span></span>
+                </div>
+                <div class="date-item">
+                    <div class="date-color current-color"></div>
+                    <span>Current: <span id="currentDate">-</span></span>
+                </div>
+            </div>
+            
+            <div class="overall-scores">
+                <div class="score-item">
+                    <div class="score-label">Previous Score</div>
+                    <div class="score-value previous-score" id="previousOverall">-</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Current Score</div>
+                    <div class="score-value current-score" id="currentOverall">-</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Improvement</div>
+                    <div class="score-value" id="improvement">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="radar-section">
+                <svg width="400" height="400" id="radarChart"></svg>
+            </div>
+            
+            <div class="controls-section">
+                <div class="legend">
+                    <h3>Chart Legend</h3>
+                    <div class="assessment-legend">
+                        <div class="assessment-color current-color"></div>
+                        <span>Current Assessment</span>
+                    </div>
+                    <div class="assessment-legend">
+                        <div class="assessment-color previous-color"></div>
+                        <span>Previous Assessment</span>
+                    </div>
+                    <hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #3B82F6;"></div>
+                        <span>Technical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #10B981;"></div>
+                        <span>Tactical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #F59E0B;"></div>
+                        <span>Physical</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #8B5CF6;"></div>
+                        <span>Mental</span>
+                    </div>
+                </div>
+                
+                <div class="adjusters">
+                    <h3>Adjust Skills</h3>
+                    <div id="skillAdjusters"></div>
+                </div>
+                
+                <div class="summary">
+                    <h3>Progress Summary</h3>
+                    <div class="summary-item">
+                        <span class="summary-label">Most Improved:</span>
+                        <span class="improvement" id="mostImproved">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Declined:</span>
+                        <span class="decline" id="declined">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Still Strong:</span>
+                        <span style="color: #6b7280;" id="stillStrong">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const skillCategories = {
+            "Forehand": "Technical",
+            "Backhand": "Technical",
+            "Serve": "Technical", 
+            "Volley": "Technical",
+            "Wall Play": "Technical",
+            "Positioning": "Tactical",
+            "Tactics": "Tactical",
+            "Fitness": "Physical",
+            "Mental Game": "Mental",
+            "Communication": "Mental"
+        };
+
+        const categoryColors = {
+            "Technical": "#3B82F6",
+            "Tactical": "#10B981",
+            "Physical": "#F59E0B", 
+            "Mental": "#8B5CF6"
+        };
+
+        let playerData = {
+            name: "Maria Rodriguez",
+            level: "Intermediate",
+            currentDate: "2025-09-17",
+            previousDate: "2025-06-15",
+            currentSkills: {
+                "Forehand": 8,
+                "Backhand": 7,
+                "Serve": 9,
+                "Volley": 8,
+                "Wall Play": 6,
+                "Positioning": 7,
+                "Tactics": 8,
+                "Fitness": 9,
+                "Mental Game": 7,
+                "Communication": 8
+            },
+            previousSkills: {
+                "Forehand": 6,
+                "Backhand": 5,
+                "Serve": 7,
+                "Volley": 6,
+                "Wall Play": 4,
+                "Positioning": 5,
+                "Tactics": 6,
+                "Fitness": 8,
+                "Mental Game": 5,
+                "Communication": 7
+            }
+        };
+
+        function parseUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (params.get('name')) playerData.name = decodeURIComponent(params.get('name'));
+            if (params.get('level')) playerData.level = decodeURIComponent(params.get('level'));
+            if (params.get('current_date')) playerData.currentDate = params.get('current_date');
+            if (params.get('previous_date')) playerData.previousDate = params.get('previous_date');
+            
+            Object.keys(playerData.currentSkills).forEach(skill => {
+                const currentKey = 'current_' + skill.toLowerCase().replace(' ', '_');
+                const previousKey = 'previous_' + skill.toLowerCase().replace(' ', '_');
+                
+                if (params.get(currentKey)) {
+                    playerData.currentSkills[skill] = parseInt(params.get(currentKey));
+                }
+                if (params.get(previousKey)) {
+                    playerData.previousSkills[skill] = parseInt(params.get(previousKey));
+                }
+            });
+        }
+
+        function drawRadarChart() {
+            const svg = document.getElementById('radarChart');
+            const skills = Object.keys(playerData.currentSkills);
+            const maxScore = 10;
+            const centerX = 200;
+            const centerY = 200;
+            const maxRadius = 150;
+            
+            // Clear existing content
+            svg.innerHTML = '';
+            
+            // Draw grid circles
+            [2, 4, 6, 8, 10].forEach(level => {
+                const radius = (level / maxScore) * maxRadius;
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', centerX);
+                circle.setAttribute('cy', centerY);
+                circle.setAttribute('r', radius);
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', '#E5E7EB');
+                circle.setAttribute('stroke-width', '1');
+                svg.appendChild(circle);
+                
+                // Add score labels
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', centerX + 5);
+                text.setAttribute('y', centerY - radius + 5);
+                text.setAttribute('font-size', '10');
+                text.setAttribute('fill', '#6B7280');
+                text.textContent = level;
+                svg.appendChild(text);
+            });
+            
+            // Draw grid lines
+            skills.forEach((_, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', centerX);
+                line.setAttribute('y1', centerY);
+                line.setAttribute('x2', centerX + Math.cos(angle) * maxRadius);
+                line.setAttribute('y2', centerY + Math.sin(angle) * maxRadius);
+                line.setAttribute('stroke', '#E5E7EB');
+                line.setAttribute('stroke-width', '1');
+                svg.appendChild(line);
+            });
+            
+            // Calculate polygon points for previous assessment
+            const previousPoints = skills.map((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.previousSkills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Draw previous assessment polygon (behind current)
+            const previousPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            previousPolygon.setAttribute('points', previousPoints);
+            previousPolygon.setAttribute('fill', 'rgba(156, 163, 175, 0.2)');
+            previousPolygon.setAttribute('stroke', '#9CA3AF');
+            previousPolygon.setAttribute('stroke-width', '2');
+            previousPolygon.setAttribute('stroke-dasharray', '5,5');
+            svg.appendChild(previousPolygon);
+            
+            // Calculate polygon points for current assessment
+            const currentPoints = skills.map((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                const radius = (playerData.currentSkills[skill] / maxScore) * maxRadius;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Draw current assessment polygon (on top)
+            const currentPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            currentPolygon.setAttribute('points', currentPoints);
+            currentPolygon.setAttribute('fill', 'rgba(59, 130, 246, 0.3)');
+            currentPolygon.setAttribute('stroke', '#3B82F6');
+            currentPolygon.setAttribute('stroke-width', '2');
+            svg.appendChild(currentPolygon);
+            
+            // Draw skill points and labels
+            skills.forEach((skill, index) => {
+                const angle = (index * 2 * Math.PI) / skills.length - Math.PI / 2;
+                
+                // Previous skill point
+                const prevRadius = (playerData.previousSkills[skill] / maxScore) * maxRadius;
+                const prevX = centerX + Math.cos(angle) * prevRadius;
+                const prevY = centerY + Math.sin(angle) * prevRadius;
+                const prevPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                prevPoint.setAttribute('cx', prevX);
+                prevPoint.setAttribute('cy', prevY);
+                prevPoint.setAttribute('r', '3');
+                prevPoint.setAttribute('fill', '#9CA3AF');
+                prevPoint.setAttribute('stroke', 'white');
+                prevPoint.setAttribute('stroke-width', '2');
+                svg.appendChild(prevPoint);
+                
+                // Current skill point
+                const currRadius = (playerData.currentSkills[skill] / maxScore) * maxRadius;
+                const currX = centerX + Math.cos(angle) * currRadius;
+                const currY = centerY + Math.sin(angle) * currRadius;
+                const currPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                currPoint.setAttribute('cx', currX);
+                currPoint.setAttribute('cy', currY);
+                currPoint.setAttribute('r', '4');
+                currPoint.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                currPoint.setAttribute('stroke', 'white');
+                currPoint.setAttribute('stroke-width', '2');
+                svg.appendChild(currPoint);
+                
+                // Skill label
+                const labelRadius = maxRadius + 20;
+                const labelX = centerX + Math.cos(angle) * labelRadius;
+                const labelY = centerY + Math.sin(angle) * labelRadius;
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', labelX);
+                label.setAttribute('y', labelY);
+                label.setAttribute('font-size', '12');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('fill', categoryColors[skillCategories[skill]]);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('dominant-baseline', 'middle');
+                label.textContent = skill;
+                svg.appendChild(label);
+            });
+        }
+        
+        function updateUI() {
+            document.getElementById('playerInfo').textContent = `${playerData.name} - ${playerData.level} Level`;
+            document.getElementById('currentDate').textContent = playerData.currentDate;
+            document.getElementById('previousDate').textContent = playerData.previousDate;
+            
+            const currentScores = Object.values(playerData.currentSkills);
+            const previousScores = Object.values(playerData.previousSkills);
+            const currentAvg = currentScores.reduce((a, b) => a + b, 0) / currentScores.length;
+            const previousAvg = previousScores.reduce((a, b) => a + b, 0) / previousScores.length;
+            const improvement = currentAvg - previousAvg;
+            
+            document.getElementById('currentOverall').textContent = currentAvg.toFixed(1);
+            document.getElementById('previousOverall').textContent = previousAvg.toFixed(1);
+            
+            const improvementEl = document.getElementById('improvement');
+            if (improvement > 0) {
+                improvementEl.textContent = `+${improvement.toFixed(1)}`;
+                improvementEl.className = 'score-value improvement';
+            } else if (improvement < 0) {
+                improvementEl.textContent = improvement.toFixed(1);
+                improvementEl.className = 'score-value decline';
+            } else {
+                improvementEl.textContent = '0.0';
+                improvementEl.className = 'score-value';
+                improvementEl.style.color = '#6b7280';
+            }
+            
+            updateSkillAdjusters();
+            updateSummary();
+        }
+        
+        function updateSkillAdjusters() {
+            const container = document.getElementById('skillAdjusters');
+            container.innerHTML = '';
+            
+            Object.keys(playerData.currentSkills).forEach(skill => {
+                const change = playerData.currentSkills[skill] - playerData.previousSkills[skill];
+                
+                const adjuster = document.createElement('div');
+                adjuster.className = 'skill-adjuster';
+                
+                let changeClass = '';
+                let changeText = '';
+                if (change > 0) {
+                    changeClass = 'improvement';
+                    changeText = `+${change}`;
+                } else if (change < 0) {
+                    changeClass = 'decline';
+                    changeText = change.toString();
+                } else {
+                    changeClass = '';
+                    changeText = '0';
+                }
+                
+                adjuster.innerHTML = `
+                    <div class="skill-header">
+                        <span class="skill-name">${skill}</span>
+                        <span class="skill-change ${changeClass}" style="background: ${change > 0 ? '#dcfce7' : change < 0 ? '#fef2f2' : '#f3f4f6'}; color: ${change > 0 ? '#166534' : change < 0 ? '#dc2626' : '#6b7280'}">${changeText}</span>
+                    </div>
+                    <div class="skill-controls">
+                        <span>Prev</span>
+                        <span>${playerData.previousSkills[skill]}</span>
+                        <span>Curr</span>
+                        <span>${playerData.currentSkills[skill]}</span>
+                    </div>
+                `;
+                container.appendChild(adjuster);
+            });
+        }
+        
+        function updateSummary() {
+            const skillEntries = Object.keys(playerData.currentSkills).map(skill => ({
+                skill,
+                current: playerData.currentSkills[skill],
+                previous: playerData.previousSkills[skill],
+                change: playerData.currentSkills[skill] - playerData.previousSkills[skill]
+            }));
+            
+            const improved = skillEntries.filter(s => s.change > 0).sort((a, b) => b.change - a.change);
+            const declined = skillEntries.filter(s => s.change < 0).sort((a, b) => a.change - b.change);
+            const strongSkills = skillEntries.filter(s => s.current >= 8).sort((a, b) => b.current - a.current);
+            
+            document.getElementById('mostImproved').textContent = improved.length > 0 ? 
+                improved.slice(0, 3).map(s => `${s.skill} (+${s.change})`).join(', ') : 'None';
+                
+            document.getElementById('declined').textContent = declined.length > 0 ? 
+                declined.slice(0, 3).map(s => `${s.skill} (${s.change})`).join(', ') : 'None';
+                
+            document.getElementById('stillStrong').textContent = strongSkills.length > 0 ? 
+                strongSkills.slice(0, 3).map(s => `${s.skill} (${s.current})`).join(', ') : 'None';
+        }
+        
+        parseUrlParams();
+        updateUI();
+        drawRadarChart();
+    </script>
+</body>
+</html>
