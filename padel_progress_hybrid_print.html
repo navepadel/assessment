@@ -1116,10 +1116,42 @@
             }
         }
         
+        // iPhone-specific PDF optimization
+        function optimizeForIPhone() {
+            const isIPhone = /iPhone|iPod/.test(navigator.userAgent);
+            const isIPad = /iPad/.test(navigator.userAgent);
+            const isIOS = isIPhone || isIPad;
+            
+            if (isIOS) {
+                // Add iOS-specific class for additional styling
+                document.body.classList.add('ios-device');
+                
+                // Force smaller chart on iOS for better PDF rendering
+                const chart = document.getElementById('radarChart');
+                if (chart) {
+                    chart.style.maxWidth = '280px';
+                    chart.style.maxHeight = '280px';
+                }
+                
+                // Optimize print button text for iOS
+                const printBtn = document.querySelector('.print-button');
+                if (printBtn) {
+                    printBtn.textContent = '📄 Print/PDF';
+                    printBtn.onclick = function() {
+                        // iOS-specific print optimization
+                        setTimeout(() => {
+                            window.print();
+                        }, 100);
+                    };
+                }
+            }
+        }
+        
         // Initialize and add resize handling
         parseUrlParams();
         updateUI();
         drawRadarChart();
+        optimizeForIPhone();
         
         // Add resize listener for responsive chart
         function handleResize() {
